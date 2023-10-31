@@ -1,0 +1,42 @@
+(mod (MOD_HASH CREATOR_PUZZLE_HASH AUCTION_END_HEIGHT HIGHEST_BIDDER_PUZHASH mode my_amount new_bidder_puzhash_or_p2_auction_id new_bid_amount)
+    (include condition_codes.clib)
+    (include curry.clib)
+    (include sha256tree.clib)
+
+    (defconstant ONE 1)
+
+    (defun-inline build_puzzle_hash (MOD_HASH CREATOR_PUZZLE_HASH AUCTION_END_HEIGHT new_bidder_puzhash)
+        (curry_hashes MOD_HASH
+            (sha256 ONE MOD_HASH)
+            (sha256 ONE CREATOR_PUZZLE_HASH)
+            (sha256 ONE AUCTION_END_HEIGHT)
+            (sha256 ONE new_bidder_puzhash)
+        )
+    )
+
+    (if (= mode 1) 
+    ; mode 1 == claim
+        (list
+            (list ASSERT_HEIGHT_ABSOLUTE AUCTION_END_HEIGHT) ; make sure auction is over
+            (list ASSERT_MY_AMOUNT my_amount)
+            (list CREATE_COIN 0 -113) ; melt myself
+            (list CREATE_COIN CREATOR_PUZZLE_HASH my_amount) ; pay highest bid to creator
+            (list CREATE_PUZZLE_ANNOUNCEMENT (sha256 new_bidder_puzhash_or_p2_auction_id)) ; announce p2_auction puzzle to claim
+            (list ASSERT_COIN_ANNOUNCEMENT (sha256 new_bidder_puzhash_or_p2_auction_id HIGHEST_BIDDER_PUZHASH)) ; assert correct puzzle_hash is being used for payout
+        )
+        ; mode 0 == bid
+        (if (= (logand new_bid_amount 1) 0); bids have to be even
+            (if (> new_bid_amount my_amount)
+                (list
+;                    (list ASSERT_BEFORE_HEIGHT_ABSOLUTE AUCTION_END_HEIGHT) ; make sure auction is not over yet
+                    (list ASSERT_MY_AMOUNT my_amount)
+                    (list CREATE_COIN (build_puzzle_hash MOD_HASH CREATOR_PUZZLE_HASH AUCTION_END_HEIGHT new_bidder_puzhash_or_p2_auction_id) (+ new_bid_amount 1)) ; recreate auction coin (has to be odd)
+                    (list CREATE_COIN HIGHEST_BIDDER_PUZHASH (- my_amount 1)) ; pay back previous bidder (has to be even)
+                    (list CREATE_COIN_ANNOUNCEMENT '$') ; create this announcement to secure the coin that is being spent to bid
+                )
+                (x)
+           )
+           (x)
+        )
+    )
+)

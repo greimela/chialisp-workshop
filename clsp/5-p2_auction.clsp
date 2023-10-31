@@ -1,0 +1,20 @@
+(mod (SINGLETON_MOD_HASH AUCTION_LAUNCHER_ID LAUNCHER_PUZZLE_HASH auction_inner_puzzle_hash my_id my_amount winner_puzzle_hash)
+    (include condition_codes.clib)
+    (include curry.clib)
+    (include sha256tree.clib)
+
+    (defun-inline calculate_full_puzzle_hash (SINGLETON_MOD_HASH AUCTION_LAUNCHER_ID LAUNCHER_PUZZLE_HASH auction_inner_puzzle_hash)
+        (curry_hashes SINGLETON_MOD_HASH
+            (sha256tree (c SINGLETON_MOD_HASH (c AUCTION_LAUNCHER_ID LAUNCHER_PUZZLE_HASH)))
+            (sha256 ONE inner_puzzle_hash)
+        )
+    )
+
+    (list 
+        (list ASSERT_MY_COIN_ID my_id)
+        (list ASSERT_PUZZLE_ANNOUNCEMENT (sha256 (calculate_full_puzzle_hash SINGLETON_MOD_HASH AUCTION_LAUNCHER_ID LAUNCHER_PUZZLE_HASH auction_inner_puzzle_hash) my_id))
+        (list CREATE_COIN_ANNOUNCEMENT winner_puzzle_hash)
+        (list ASSERT_MY_AMOUNT my_amount)
+        (list CREATE_COIN winner_puzzle_hash my_amount (list winner_puzzle_hash))
+    )
+)

@@ -1,0 +1,7 @@
+.DS_Store
+venv
+build
+*.egg-info
+.idea
+main.sym
+clsp/*.hex

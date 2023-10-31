@@ -1,0 +1,38 @@
+(mod (MOD_HASH PAYOUT_HEIGHT PUZZLE_HASHES mode my_amount puzzle_hash_to_add)
+    (include condition_codes.clib)
+    (include curry.clib)
+    (include sha256tree.clib)
+
+    (defun-inline build_puzzle_hash (MOD_HASH PUZZLE_HASHES)
+        (curry_hashes MOD_HASH
+            (sha256 ONE MOD_HASH)
+            (sha256tree PUZZLE_HASHES)
+        )
+    )
+
+    ; write code which counts the number of entries in PUZZLE_HASHES
+    (defun-inline count_entries (PUZZLE_HASHES)
+        ; write code here
+    )
+
+    (defun-inline calculate_amount_per_entry (total_amount number_of_shares)
+        (f (divmod total_amount number_of_shares))
+    )
+
+    ; create a recursive loop that makes a (CREATE_COIN puzzle_hash amount) for every entry in PUZZLE_HASHES
+    (defun create_payout_coins (PUZZLE_HASHES amount_per_entry)
+        ; write code here
+    )
+
+    (if (= mode 1) 
+        (c
+            (list ASSERT_HEIGHT_ABSOLUTE PAYOUT_HEIGHT)
+            (c 
+                (list ASSERT_MY_AMOUNT my_amount)
+                (create_payout_coins PUZZLE_HASHES (calculate_amount_per_entry my_amount (count_entries PUZZLE_HASHES)))
+            )
+        )
+        ; use build_puzzle_hash to create a spend case which recreates itself with a given puzzlehash added
+        ; your code here
+    )
+)
