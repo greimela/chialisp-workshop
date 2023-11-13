@@ -1,0 +1,22 @@
+(mod (PUBLIC_KEY target_puzzle_hash target_amount my_puzzle_hash my_amount)
+    (include condition_codes.clib)
+    (include sha256tree.clib)
+
+    (c 
+        (list CREATE_COIN target_puzzle_hash target_amount)
+        (c 
+            (list AGG_SIG_ME PUBLIC_KEY (sha256tree (list target_puzzle_hash target_amount)))
+            (c 
+                (list ASSERT_MY_AMOUNT my_amount)
+                (if (= (- my_amount target_amount) 0)
+                    ()
+                    (list
+                        (list CREATE_COIN my_puzzle_hash (- my_amount amount))
+                        (list ASSERT_MY_PUZZLE_HASH my_puzzle_hash)
+                    )
+                )
+            )
+        )
+    )
+    
+)

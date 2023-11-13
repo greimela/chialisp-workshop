@@ -1,0 +1,9 @@
+(mod (target_puzzle_hash my_amount)
+    (include condition_codes.clib)
+
+    (list 
+        (list CREATE_COIN target_puzzle_hash my_amount) 
+        (list ASSERT_MY_AMOUNT my_amount)
+        (list AGG_SIG_ME 0xdeadbeef target_puzzle_hash)
+    )
+)
