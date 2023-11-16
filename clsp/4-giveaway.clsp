@@ -3,6 +3,8 @@
     (include curry.clib)
     (include sha256tree.clib)
 
+    (defconstant ONE 1)
+
     (defun-inline build_puzzle_hash (MOD_HASH PUZZLE_HASHES)
         (curry_hashes MOD_HASH
             (sha256 ONE MOD_HASH)
