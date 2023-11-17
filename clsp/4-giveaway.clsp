@@ -10,29 +10,47 @@
         )
     )
 
-    ; write code which counts the number of entries in PUZZLE_HASHES
+    ; could be passed in via solution to reduce cost
     (defun-inline count_entries (PUZZLE_HASHES)
-        ; write code here
+        (if PUZZLE_HASHES
+            (+ 1 (count_entries (r PUZZLE_HASHES)))
+            0
+        )
     )
 
     (defun-inline calculate_amount_per_entry (total_amount number_of_shares)
         (f (divmod total_amount number_of_shares))
     )
 
-    ; create a recursive loop that makes a (CREATE_COIN puzzle_hash amount) for every entry in PUZZLE_HASHES
     (defun create_payout_coins (PUZZLE_HASHES amount_per_entry)
-        ; write code here
+        (if PUZZLE_HASHES
+            (c
+                (list
+                    CREATE_COIN
+                    (f PUZZLE_HASHES)
+                    amount_per_entry
+                    (list (f PUZZLE_HASHES))
+                )
+                (create_payout_coins
+                    (r PUZZLE_HASHES)
+                    amount_per_entry
+                )
+            )
+            ()
+        )
     )
 
-    (if (= mode 1) 
-        (c
+    (if (= mode 1)
+        (c ; mode 1 == payout
             (list ASSERT_HEIGHT_ABSOLUTE PAYOUT_HEIGHT)
-            (c 
+            (c
                 (list ASSERT_MY_AMOUNT my_amount)
                 (create_payout_coins PUZZLE_HASHES (calculate_amount_per_entry my_amount (count_entries PUZZLE_HASHES)))
             )
         )
-        ; use build_puzzle_hash to create a spend case which recreates itself with a given puzzlehash added
-        ; your code here
+        (list
+            (list ASSERT_MY_AMOUNT my_amount)
+            (list CREATE_COIN (build_puzzle_hash MOD_HASH (c puzzle_hash_to_add PUZZLE_HASHES)) my_amount)
+        )
     )
 )
